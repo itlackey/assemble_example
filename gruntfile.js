@@ -25,7 +25,8 @@
         },
         assemble: {
             options: {
-                assets: "<%= paths.src %>/assets",
+                data: ['<%= paths.src %>/data/*.json'],
+                //assets: "<%= paths.src %>/assets",
                 layout: "<%= paths.src %>/layouts/layout.hbs",
                 partials: "<%= paths.src %>/partials/**/*.hbs"
             },
@@ -97,6 +98,10 @@
             images:{
                 files: ['<%= paths.src %>/images/**/*.*'],
                 tasks: ['copy:images']
+            },
+            data:{
+                files: ['<%= paths.src %>/data/*.*'],
+                tasks: ['assemble']
             },
             pages:{
                 files: ['<%= paths.src %>/**/*.hbs'],
