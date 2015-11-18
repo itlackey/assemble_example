@@ -1,72 +1,129 @@
-/*global module:false*/
-module.exports = function(grunt) {
-
-  // Project configuration.
-  grunt.initConfig({
-    // Metadata.
-    pkg: grunt.file.readJSON('package.json'),
-   // Task configuration.
-    concat: {
-      options: {
-        stripBanners: true
-      },
-      dist: {
-        src: ['lib/<%= pkg.name %>.js'],
-        dest: 'dist/<%= pkg.name %>.js'
-      }
-    },
-    uglify: {
-      options: {
-        banner: '<%= banner %>'
-      },
-      dist: {
-        src: '<%= concat.dist.dest %>',
-        dest: 'dist/<%= pkg.name %>.min.js'
-      }
-    },
-    jshint: {
-      options: {
-        curly: true,
-        eqeqeq: true,
-        immed: true,
-        latedef: true,
-        newcap: true,
-        noarg: true,
-        sub: true,
-        undef: true,
-        unused: true,
-        boss: true,
-        eqnull: true,
-        globals: {
-          jQuery: true
+﻿module.exports = function (grunt) {
+    grunt.initConfig({  
+        paths:{
+            src: 'src', 
+            vendor: 'bower_components',
+            dest: 'wwwroot'
+        },
+        //site: grunt.readJSONFile('src/data/site.json'),
+        connect: {
+            server: {
+                options: {
+                    port: 9001,
+                    base: '<%= paths.dest %>',
+                    livereload: true
+                }
+            }
+        },    
+        less: {
+            main: {
+                files: {
+                    "<%= paths.src %>/styles/skin.css": 
+                        "<%= paths.src %>/styles/skin.less"
+                }
+            },
+        },
+        assemble: {
+            options: {
+                assets: "<%= paths.src %>/assets",
+                layout: "<%= paths.src %>/layouts/layout.hbs",
+                partials: "<%= paths.src %>/partials/**/*.hbs"
+            },
+            main: {
+                expand: true,
+                cwd: '<%= paths.src %>/pages',
+                dest: '<%= paths.dest %>',
+                src: "**/*.hbs"
+            }
+        },
+        copy:{
+            images:{
+                expand: true,
+                cwd: '<%= paths.src %>/images',
+                src: ['**'],
+                dest: '<%= paths.dest %>/images'
+            },
+            vendor: {
+                files: [
+                  {
+                      expand: true,
+                      cwd: '<%= paths.vendor %>/jquery/dist/',
+                      src: ['*.min.js'],
+                      dest: '<%= paths.dest %>/scripts'
+                  },
+                  {
+                      expand: true,
+                      cwd: '<%= paths.vendor %>/bootstrap/dist/css',
+                      src: ['*.min.css'],
+                      dest: '<%= paths.dest %>/styles'
+                  },
+                  {
+                      expand: true,
+                      cwd: '<%= paths.vendor %>/bootstrap/dist/js',
+                      src: ['*.min.js'],
+                      dest: '<%= paths.dest %>/scripts'
+                  },
+                  {
+                      expand: true,
+                      cwd: '<%= paths.vendor %>/bootstrap/dist/fonts',
+                      src: ['*.*'],
+                      dest: '<%= paths.dest %>/fonts'
+                  }
+                ],
+            },
+        },
+        cssmin:{
+           options: {
+                shorthandCompacting: false,
+                roundingPrecision: -1
+            },
+            target: {
+                files: {
+                '<%= paths.dest%>/styles/core.min.css': ['<%= paths.src %>/styles/*.css']
+                }
+            } 
+        },
+        uglify: {
+            all: {
+                files: {
+                    '<%= paths.dest %>/scripts/core.min.js': ['<%= paths.src %>/scripts/*.js']
+                }
+            }
+        },
+        watch: {
+            options:{
+             livereload: true
+            },
+            images:{
+                files: ['<%= paths.src %>/images/**/*.*'],
+                tasks: ['copy:images']
+            },
+            pages:{
+                files: ['<%= paths.src %>/**/*.hbs'],
+                tasks: ['assemble']
+            },
+            styles:{
+               files: ['<%= paths.src %>/styles/*.less'],
+                tasks: ['less', 'cssmin'] 
+            },
+            scripts:{
+                files: ['<%= paths.src %>/scripts/*.js'],
+                tasks: ['uglify']
+            }
         }
-      },
-      gruntfile: {
-        src: 'Gruntfile.js'
-      },
-      lib_test: {
-        src: ['lib/**/*.js', 'test/**/*.js']
-      }
-    },
-    watch: {
-      gruntfile: {
-        files: '<%= jshint.gruntfile.src %>',
-        tasks: ['jshint:gruntfile']
-      },
-      lib_test: {
-        files: '<%= jshint.lib_test.src %>',
-        tasks: ['jshint:lib_test', 'nodeunit']
-      }
-    }
-  });
+    });
 
-  // These plugins provide necessary tasks.
-  grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-
-  // Default task.
-  grunt.registerTask('default', ['jshint',  'concat', 'uglify']);
+    grunt.loadNpmTasks('assemble');
+    grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-less');
+    grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-contrib-connect');
+    grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-cssmin');
+    
+    grunt.registerTask('build_all', ['less', 'assemble', 'uglify', 'cssmin', 'copy']);
+    
+    grunt.registerTask('default', ['build_all', 'connect', 'watch']);
+    
 
 };
