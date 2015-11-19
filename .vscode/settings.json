@@ -1,0 +1,12 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+	// Configure glob patterns for excluding files and folders.
+	"files.exclude": {
+		"**/.git": true,
+		"**/.DS_Store": true,
+		"node_modules":true,
+		"bower_components": true
+		// ,"wwwroot":true // uncomment this to hide the wwwroot folder
+	}
+
+}
